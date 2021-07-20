@@ -73,7 +73,7 @@ def next_batch(dataset_name, batch_size, shortside_len, is_training):
     '''
     assert batch_size == 1, "we only support batch_size is 1.We may support large batch_size in the future"
 
-    if dataset_name not in ['ship', 'spacenet', 'pascal', 'coco']:
+    if dataset_name not in ['ship', 'spacenet', 'pascal', 'coco', 'ROOF']:
         raise ValueError('dataSet name must be in pascal, coco spacenet and ship')
 
     if is_training:

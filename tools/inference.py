@@ -97,10 +97,10 @@ def parse_args():
     parser = argparse.ArgumentParser(description='TestImgs...U need provide the test dir')
     parser.add_argument('--data_dir', dest='data_dir',
                         help='data path',
-                        default='demos', type=str)
+                        default='eval_images_area123', type=str)
     parser.add_argument('--save_dir', dest='save_dir',
                         help='demo imgs to save',
-                        default='inference_results', type=str)
+                        default='faster_rcnn_results', type=str)
     parser.add_argument('--GPU', dest='GPU',
                         help='gpu id ',
                         default='0', type=str)

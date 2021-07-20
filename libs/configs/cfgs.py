@@ -98,15 +98,15 @@ GRADIENT_CLIPPING_BY_NORM = None   # 10.0  if None, will not clip
 EPSILON = 1e-5
 MOMENTUM = 0.9
 LR = 0.001 # 0.001  # 0.0003
-DECAY_STEP = [50000, 70000]  # 50000, 70000
-MAX_ITERATION = 200000
+DECAY_STEP = [1000000, 2000000]  # 50000, 70000
+MAX_ITERATION = 3000000
 
 # -------------------------------------------- Data_preprocess_config
-DATASET_NAME = 'pascal'  # 'ship', 'spacenet', 'pascal', 'coco'
+DATASET_NAME = 'ROOF'  # 'ship', 'spacenet', 'pascal', 'coco'
 PIXEL_MEAN = [123.68, 116.779, 103.939]  # R, G, B. In tf, channel is RGB. In openCV, channel is BGR
-IMG_SHORT_SIDE_LEN = 600
-IMG_MAX_LENGTH = 1000
-CLASS_NUM = 20
+IMG_SHORT_SIDE_LEN = 640
+IMG_MAX_LENGTH = 640
+CLASS_NUM = 8
 
 # --------------------------------------------- Network_config
 BATCH_SIZE = 1
@@ -115,12 +115,19 @@ BBOX_INITIALIZER = tf.random_normal_initializer(mean=0.0, stddev=0.001)
 WEIGHT_DECAY = 0.00004 if NET_NAME.startswith('Mobilenet') else 0.0001
 
 # ---------------------------------------------Anchor config
+#BASE_ANCHOR_SIZE_LIST = [256]  # can be modified
+#ANCHOR_STRIDE = [16]  # can not be modified in most situations
+#ANCHOR_SCALES = [0.5, 1., 2.0]  # [4, 8, 16, 32]
+#ANCHOR_RATIOS = [0.5, 1., 2.0]
+#ROI_SCALE_FACTORS = [10., 10., 5.0, 5.0]
+#ANCHOR_SCALE_FACTORS = None
 BASE_ANCHOR_SIZE_LIST = [256]  # can be modified
 ANCHOR_STRIDE = [16]  # can not be modified in most situations
-ANCHOR_SCALES = [0.5, 1., 2.0]  # [4, 8, 16, 32]
-ANCHOR_RATIOS = [0.5, 1., 2.0]
-ROI_SCALE_FACTORS = [10., 10., 5.0, 5.0]
+ANCHOR_SCALES = [0.0625, 0.125, 0.25, 0.5, 1., 2.0]  # [4, 8, 16, 32]
+ANCHOR_RATIOS = [1, 1 / 2, 2., 1 / 3., 3., 5., 1 / 4., 4., 1 / 5., 6., 1 / 6., 7., 1 / 7.]
+ROI_SCALE_FACTORS = [10., 10., 5.0, 5.0, 5.0]
 ANCHOR_SCALE_FACTORS = None
+
 
 
 # --------------------------------------------RPN config
@@ -135,7 +142,7 @@ RPN_NMS_IOU_THRESHOLD = 0.7
 RPN_TOP_K_NMS_TRAIN = 12000
 RPN_MAXIMUM_PROPOSAL_TARIN = 2000
 
-RPN_TOP_K_NMS_TEST = 6000  # 5000
+RPN_TOP_K_NMS_TEST = 10000  # 5000
 RPN_MAXIMUM_PROPOSAL_TEST = 300  # 300
 
 
@@ -144,7 +151,7 @@ ROI_SIZE = 14
 ROI_POOL_KERNEL_SIZE = 2
 USE_DROPOUT = False
 KEEP_PROB = 1.0
-SHOW_SCORE_THRSHOLD = 0.5  # only show in tensorboard
+SHOW_SCORE_THRSHOLD = 0.1  # only show in tensorboard
 
 FAST_RCNN_NMS_IOU_THRESHOLD = 0.3  # 0.6
 FAST_RCNN_NMS_MAX_BOXES_PER_CLASS = 100
