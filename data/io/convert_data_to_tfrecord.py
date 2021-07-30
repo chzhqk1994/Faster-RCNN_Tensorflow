@@ -9,14 +9,15 @@ import glob
 import cv2
 from libs.label_name_dict.label_dict import *
 from help_utils.tools import *
+#from PIL import Image
 
 tf.app.flags.DEFINE_string('VOC_dir', '/mnt/USBB/gx/DOTA/DOTA_TOTAL/', 'Voc dir')
-tf.app.flags.DEFINE_string('xml_dir', 'XML', 'xml dir')
-tf.app.flags.DEFINE_string('image_dir', 'IMG', 'image dir')
+tf.app.flags.DEFINE_string('xml_dir', 'annotations', 'xml dir')
+tf.app.flags.DEFINE_string('image_dir', 'JPEGImages', 'image dir')
 tf.app.flags.DEFINE_string('save_name', 'train', 'save name')
 tf.app.flags.DEFINE_string('save_dir', '../tfrecord/', 'save name')
 tf.app.flags.DEFINE_string('img_format', '.png', 'format of image')
-tf.app.flags.DEFINE_string('dataset', 'DOTA_TOTAL', 'dataset')
+tf.app.flags.DEFINE_string('dataset', 'ROOF', 'dataset')
 FLAGS = tf.app.flags.FLAGS
 
 
@@ -83,8 +84,17 @@ def convert_pascal_to_tfrecord():
         # to avoid path error in different development platform
         xml = xml.replace('\\', '/')
 
-        img_name = xml.split('/')[-1].split('.')[0] + FLAGS.img_format
-        img_path = image_path + '/' + img_name
+        # img_name = xml.split('/')[-1].split('.')[0] + FLAGS.img_format
+        img_name, ext = os.path.splitext(xml)
+        img_name = img_name.split('/')[-1]
+        img_path = str(image_path) + '/' + str(img_name.split('/')[-1]) + str(FLAGS.img_format)
+
+        if not os.path.exists(xml_path):
+            #print(xml_path)
+            print('No annotation, skip')
+            continue
+        else:
+            print('ANNOTATION FOUND')
 
         if not os.path.exists(img_path):
             print('{} is not exist!'.format(img_path))
@@ -97,8 +107,8 @@ def convert_pascal_to_tfrecord():
 
         feature = tf.train.Features(feature={
             # do not need encode() in linux
-            # 'img_name': _bytes_feature(img_name.encode()),
-            'img_name': _bytes_feature(img_name),
+            'img_name': _bytes_feature(img_name.encode()),
+            # 'img_name': _bytes_feature(img_name),
             'img_height': _int64_feature(img_height),
             'img_width': _int64_feature(img_width),
             'img': _bytes_feature(img.tostring()),
