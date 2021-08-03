@@ -286,6 +286,9 @@ def voc_evaluate_detections(all_boxes, test_annotation_path, test_imgid_list):
   '''
   test_imgid_list = [item for item in test_imgid_list]
 
+  if not os.path.exists(os.path.join(cfgs.EVALUATE_DIR, cfgs.VERSION)):
+    os.makedirs(os.path.join(cfgs.EVALUATE_DIR, cfgs.VERSION))
+
   write_voc_results_file(all_boxes, test_imgid_list=test_imgid_list,
                          det_save_dir=os.path.join(cfgs.EVALUATE_DIR, cfgs.VERSION))
   mAP, recall, precision, total_AP, total_recall, total_precision = do_python_eval(test_imgid_list, test_annotation_path=test_annotation_path)

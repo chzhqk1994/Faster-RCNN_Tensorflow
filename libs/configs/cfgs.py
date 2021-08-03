@@ -13,10 +13,10 @@ ADD_BOX_IN_TENSORBOARD = True
 ROOT_PATH = os.path.abspath('../')
 print(20*"++--")
 print(ROOT_PATH)
-GPU_GROUP = "0"
+GPU_GROUP = "3"
 SHOW_TRAIN_INFO_INTE = 10
 SMRY_ITER = 100
-SAVE_WEIGHTS_INTE = 10000
+SAVE_WEIGHTS_INTE = 2000
 
 SUMMARY_PATH = ROOT_PATH + '/output/summary'
 TEST_SAVE_PATH = ROOT_PATH + '/tools/test_result'
@@ -52,8 +52,8 @@ GRADIENT_CLIPPING_BY_NORM = None   # 10.0  if None, will not clip
 
 EPSILON = 1e-5
 MOMENTUM = 0.9
-LR = 0.0001 # 0.001  # 0.0003
-DECAY_STEP = [1000000, 2000000]  # 50000, 70000
+LR = 0.0003 # 0.001  # 0.0003
+DECAY_STEP = [700000, 1400000, 2100000, 2800000]  # 50000, 70000
 MAX_ITERATION = 3000000
 
 # -------------------------------------------- Data_preprocess_config
