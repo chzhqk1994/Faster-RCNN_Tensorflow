@@ -8,13 +8,7 @@ from PIL import Image, ImageDraw, ImageFont
 import cv2
 
 from libs.configs import cfgs
-
-import libs.label_name_dict.coco_dict as coco_dict
-import libs.label_name_dict.label_dict as label_dict
-if cfgs.DATASET_NAME == 'coco':
-    LABEL_NAME_MAP = coco_dict.LABEL_NAME_MAP
-else:
-    LABEL_NAME_MAP = label_dict.LABEL_NAME_MAP
+from libs.label_name_dict.label_dict import LABEL_NAME_MAP
 
 NOT_DRAW_BOXES = 0
 ONLY_DRAW_BOXES = -1
@@ -125,6 +119,65 @@ def draw_boxes_with_label_and_scores(img_array, boxes, labels, scores):
     out_img_obj = Image.blend(raw_img_obj, img_obj, alpha=0.6)
 
     return np.array(out_img_obj)
+
+
+def draw_box_cv(img, boxes, labels, scores):
+    img = img + np.array(cfgs.PIXEL_MEAN)
+    boxes = boxes.astype(np.int64)
+    labels = labels.astype(np.int32)
+    img = np.array(img, np.float32)
+    img = np.array(img*255/np.max(img), np.uint8)
+
+    num_of_object = 0
+    for i, box in enumerate(boxes):
+        xmin, ymin, xmax, ymax = box[0], box[1], box[2], box[3]
+
+        label = labels[i]
+        if label != 0:
+            num_of_object += 1
+            color = (np.random.randint(255), np.random.randint(255), np.random.randint(255))
+            color = (0, 255, 0)
+            cv2.rectangle(img,
+                          pt1=(xmin, ymin),
+                          pt2=(xmax, ymax),
+                          color=color,
+                          thickness=2)
+
+            category = LABEL_NAME_MAP[label]
+
+            if scores is not None:
+                cv2.rectangle(img,
+                              pt1=(xmin, ymin),
+                              pt2=(xmin+150, ymin+15),
+                              color=color,
+                              thickness=-1)
+                cv2.putText(img,
+                            text=category+": "+str(scores[i]),
+                            org=(xmin, ymin+10),
+                            fontFace=1,
+                            fontScale=1,
+                            thickness=2,
+                            color=(color[1], color[2], color[0]))
+            else:
+                cv2.rectangle(img,
+                              pt1=(xmin, ymin),
+                              pt2=(xmin + 40, ymin + 15),
+                              color=color,
+                              thickness=-1)
+                cv2.putText(img,
+                            text=category,
+                            org=(xmin, ymin + 10),
+                            fontFace=1,
+                            fontScale=1,
+                            thickness=2,
+                            color=(color[1], color[2], color[0]))
+    cv2.putText(img,
+                text=str(num_of_object),
+                org=((img.shape[1]) // 2, (img.shape[0]) // 2),
+                fontFace=3,
+                fontScale=1,
+                color=(255, 0, 0))
+    return img
 
 
 if __name__ == '__main__':

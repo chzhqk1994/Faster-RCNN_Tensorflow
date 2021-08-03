@@ -48,7 +48,11 @@ def write_voc_results_file(all_boxes, test_imgid_list, det_save_dir):
 
 def parse_rec(filename):
   """ Parse a PASCAL VOC xml file """
-  tree = ET.parse(filename)
+  try:
+    tree = ET.parse(filename)
+  except FileNotFoundError:
+    return None
+
   objects = []
   for obj in tree.findall('object'):
     obj_struct = {}
@@ -118,12 +122,14 @@ def voc_eval(detpath, annopath, test_imgid_list, cls_name, ovthresh=0.5,
   # read list of images
   imagenames = test_imgid_list
 
+  recs_tmp = {}
   recs = {}
+  none_list = []
   for i, imagename in enumerate(imagenames):
-    recs[imagename] = parse_rec(os.path.join(annopath, imagename+'.xml'))
-    # if i % 100 == 0:
-    #   print('Reading annotation for {:d}/{:d}'.format(
-    #     i + 1, len(imagenames)))
+    recs_tmp[imagename] = parse_rec(os.path.join(annopath, imagename+'.xml'))
+
+    recs = dict((k, v) for k, v in recs_tmp.items() if v != None)
+    none_list = [k for k, v in recs_tmp.items() if v == None]
 
   # 2. get gtboxes for this class.
   class_recs = {}
@@ -131,6 +137,8 @@ def voc_eval(detpath, annopath, test_imgid_list, cls_name, ovthresh=0.5,
   # if cls_name == 'person':
   #   print ("aaa")
   for imagename in imagenames:
+    if imagename in none_list:
+      continue
     R = [obj for obj in recs[imagename] if obj['name'] == cls_name]
     bbox = np.array([x['bbox'] for x in R])
     if use_diff:
@@ -214,12 +222,18 @@ def voc_eval(detpath, annopath, test_imgid_list, cls_name, ovthresh=0.5,
   return rec, prec, ap
 
 
+def get_values_from_dict(dict):
+  value_list = list(dict.values())
+
+  return value_list
+
+
 def do_python_eval(test_imgid_list, test_annotation_path):
-  AP_list = []
   import matplotlib.pyplot as plt
   import matplotlib.colors as colors
-  color_list = colors.cnames.keys()[::6]
-
+  mAP_dict = {}
+  mPrecision_dict = {}
+  mRecall_dict = {}
   for cls, index in NAME_LABEL_MAP.items():
     if cls == 'back_ground':
       continue
@@ -227,14 +241,38 @@ def do_python_eval(test_imgid_list, test_annotation_path):
                                      test_imgid_list=test_imgid_list,
                                      cls_name=cls,
                                      annopath=test_annotation_path)
-    AP_list += [AP]
-    print("cls : {}|| Recall: {} || Precison: {}|| AP: {}".format(cls, recall[-1], precision[-1], AP))
-    plt.plot(recall, precision, label=cls, color=color_list[index])
-    plt.legend(loc='upper right')
-    print(10*"__")
-  # plt.show()
-  plt.savefig(cfgs.VERSION+'.jpg')
-  print("mAP is : {}".format(np.mean(AP_list)))
+    Precision_cls = np.mean(precision)
+    Recall_cls = np.mean(recall)
+    print("{}_AP: {}".format(cls, AP))
+
+    print("{}_mRecall: {}".format(cls, Recall_cls))
+    print("{}_mPrecision: {}".format(cls, Precision_cls))
+
+    mAP_dict[cls] = AP
+    mPrecision_dict[cls] = Precision_cls
+    mRecall_dict[cls] = Recall_cls
+
+    c = colors.cnames.keys()
+    c_dark = list(filter(lambda x: x.startswith('dark'), c))
+    c = ['blue', 'green']
+    plt.axis([0, 1.2, 0, 1])
+    plt.plot(recall, precision, color=c_dark[index], label=cls)
+
+  plt.legend(loc='upper right')
+  plt.xlabel('Recall')
+  plt.ylabel('Precision')
+  plt.savefig('./PR_H.png')
+
+  print(mAP_dict, mRecall_dict, mPrecision_dict)
+  total_mAP = np.mean(get_values_from_dict(mAP_dict))
+  total_mRecall = np.mean(get_values_from_dict(mRecall_dict))
+  total_mPrecision = np.mean(get_values_from_dict(mPrecision_dict))
+
+  print("mAP_H is : {}".format(total_mAP))
+  print("mRecall_H is : {}".format(total_mRecall))
+  print("mPrecision_H is : {}".format(total_mPrecision))
+  # print(mAP, recall, precision)
+  return total_mAP, total_mRecall, total_mPrecision, mAP_dict, mRecall_dict, mPrecision_dict
 
 
 def voc_evaluate_detections(all_boxes, test_annotation_path, test_imgid_list):
@@ -246,15 +284,9 @@ def voc_evaluate_detections(all_boxes, test_annotation_path, test_imgid_list):
   Note that: if none detections in this img. that the detetions is : []
   :return:
   '''
-  test_imgid_list = [item.split('.')[0] for item in test_imgid_list]
+  test_imgid_list = [item for item in test_imgid_list]
 
   write_voc_results_file(all_boxes, test_imgid_list=test_imgid_list,
                          det_save_dir=os.path.join(cfgs.EVALUATE_DIR, cfgs.VERSION))
-  do_python_eval(test_imgid_list, test_annotation_path=test_annotation_path)
-
-
-
-
-
-
-
+  mAP, recall, precision, total_AP, total_recall, total_precision = do_python_eval(test_imgid_list, test_annotation_path=test_annotation_path)
+  return mAP, recall, precision, total_AP, total_recall, total_precision
